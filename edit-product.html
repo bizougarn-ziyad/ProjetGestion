@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - Clothing & Measurements Dashboard</title>
+    <link href="./dist/output.css" rel="stylesheet">
+    <script src="./database/client.js"></script>
+</head>
+
+<body class="bg-gray-50 font-sans antialiased">
+    <div class="min-h-screen py-8">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Header -->
+            <div class="mb-8">
+                <div class="flex items-center space-x-4 mb-4">
+                    <button onclick="goBack()"
+                        class="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Back to Dashboard
+                    </button>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900">Edit Product</h1>
+                <p class="text-gray-600 mt-2">Update the product information below.</p>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="bg-white rounded-xl shadow-sm p-8 text-center">
+                <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <p class="text-gray-600">Loading product information...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="bg-white rounded-xl shadow-sm p-8 text-center hidden">
+                <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Product Not Found</h3>
+                <p class="text-gray-600 mb-4">The product you're trying to edit could not be found.</p>
+                <button onclick="goBack()"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Return to Dashboard
+                </button>
+            </div>
+
+            <!-- Form Container -->
+            <div id="formContainer" class="bg-white rounded-xl shadow-sm hidden">
+                <form id="editProductForm" class="p-8">
+                    <input type="hidden" id="productId" name="productId">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Product Name -->
+                        <div class="md:col-span-2">
+                            <label for="productName" class="block text-sm font-medium text-gray-700 mb-2">
+                                Product Name *
+                            </label>
+                            <input type="text" id="productName" name="productName" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter product name">
+                            <p class="text-red-500 text-sm mt-1 hidden" id="productNameError">Product name is required
+                            </p>
+                        </div>
+
+                        <!-- Category -->
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-gray-700 mb-2">
+                                Category *
+                            </label>
+                            <select id="category" name="category" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select a category</option>
+                                <option value="shirts">Shirts</option>
+                                <option value="pants">Pants</option>
+                                <option value="dresses">Dresses</option>
+                                <option value="jackets">Jackets</option>
+                                <option value="accessories">Accessories</option>
+                                <option value="shoes">Shoes</option>
+                                <option value="underwear">Underwear</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <p class="text-red-500 text-sm mt-1 hidden" id="categoryError">Category is required</p>
+                        </div>
+
+                        <!-- Size -->
+                        <div>
+                            <label for="size" class="block text-sm font-medium text-gray-700 mb-2">
+                                Size *
+                            </label>
+                            <select id="size" name="size" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select a size</option>
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                                <option value="XXXL">XXXL</option>
+                                <option value="One Size">One Size</option>
+                            </select>
+                            <p class="text-red-500 text-sm mt-1 hidden" id="sizeError">Size is required</p>
+                        </div>
+
+                        <!-- Price -->
+                        <div>
+                            <label for="price" class="block text-sm font-medium text-gray-700 mb-2">
+                                Price ($) *
+                            </label>
+                            <input type="number" id="price" name="price" required step="0.01" min="0"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="0.00">
+                            <p class="text-red-500 text-sm mt-1 hidden" id="priceError">Valid price is required</p>
+                        </div>
+
+                        <!-- Stock Quantity -->
+                        <div>
+                            <label for="stockQuantity" class="block text-sm font-medium text-gray-700 mb-2">
+                                Stock Quantity *
+                            </label>
+                            <input type="number" id="stockQuantity" name="stockQuantity" required min="0"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="0">
+                            <p class="text-red-500 text-sm mt-1 hidden" id="stockQuantityError">Stock quantity is
+                                required</p>
+                        </div>
+
+                        <!-- Color -->
+                        <div>
+                            <label for="color" class="block text-sm font-medium text-gray-700 mb-2">
+                                Color
+                            </label>
+                            <input type="text" id="color" name="color"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter product color">
+                        </div>
+
+                        <!-- Brand -->
+                        <div>
+                            <label for="brand" class="block text-sm font-medium text-gray-700 mb-2">
+                                Brand
+                            </label>
+                            <input type="text" id="brand" name="brand"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter brand name">
+                        </div>
+
+
+                        <!-- Description -->
+                        <div class="md:col-span-2">
+                            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                                Description
+                            </label>
+                            <textarea id="description" name="description" rows="4"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                placeholder="Enter product description, features, care instructions, etc."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-gray-200">
+                        <button type="button" onclick="goBack()"
+                            class="flex-1 sm:flex-none px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="flex-1 sm:flex-none px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span id="submitText">Update Product</span>
+                            <span id="submitLoading" class="hidden">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                Updating...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50"></div>
+
+    <script>
+        let currentProduct = null;
+
+        // Get product ID from URL parameters
+        function getProductIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        // Load product data
+        async function loadProduct() {
+            const productId = getProductIdFromUrl();
+            console.log('Product ID from URL:', productId); // Debug log
+
+            if (!productId) {
+                console.log('No product ID found in URL'); // Debug log
+                showErrorState();
+                return;
+            }
+
+            try {
+                console.log('Fetching product with ID:', productId); // Debug log
+                const product = await window.db.getProductById(productId);
+                console.log('Received product from database:', product); // Debug log
+
+                if (!product) {
+                    console.log('Product not found in database'); // Debug log
+                    showErrorState();
+                    return;
+                }
+
+                currentProduct = product;
+                populateForm(product);
+                showForm();
+
+            } catch (error) {
+                console.error('Error loading product:', error);
+                showErrorState();
+            }
+        }
+
+        // Populate form with product data
+        function populateForm(product) {
+            console.log('Populating form with product:', product); // Debug log
+
+            document.getElementById('productId').value = product.id;
+            document.getElementById('productName').value = product.name || '';
+
+            // Handle category - use category_name from the joined query
+            if (product.category_name) {
+                // Map category name back to the dropdown value
+                const categoryMap = {
+                    'shirts': 'shirts',
+                    'pants': 'pants',
+                    'dresses': 'dresses',
+                    'jackets': 'jackets',
+                    'accessories': 'accessories',
+                    'shoes': 'shoes',
+                    'underwear': 'underwear'
+                };
+
+                const categoryValue = categoryMap[product.category_name.toLowerCase()] || 'other';
+                document.getElementById('category').value = categoryValue;
+            }
+
+            document.getElementById('price').value = product.price || '';
+            document.getElementById('stockQuantity').value = product.stock_quantity || '';
+            document.getElementById('description').value = product.description || '';
+
+            // Leave additional fields empty for now until we get basic edit working
+            document.getElementById('size').value = '';
+            document.getElementById('color').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('material').value = '';
+            document.getElementById('sku').value = '';
+        }
+
+        // Show different states
+        function showForm() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('formContainer').classList.remove('hidden');
+        }
+
+        function showErrorState() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('formContainer').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+        }
+
+        // Helper function to get or create category ID
+        async function getCategoryId(categoryName) {
+            if (!categoryName) return null;
+
+            // For now, let's create a simple mapping
+            // In a full implementation, you'd query the product_categories table
+            const categoryMap = {
+                'shirts': 1,
+                'pants': 2,
+                'dresses': 3,
+                'jackets': 4,
+                'accessories': 5,
+                'shoes': 6,
+                'underwear': 7,
+                'other': 8
+            };
+
+            return categoryMap[categoryName.toLowerCase()] || 8; // Default to 'other'
+        }
+
+        // Form validation and submission
+        document.getElementById('editProductForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            if (!validateForm()) {
+                return;
+            }
+
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const submitText = document.getElementById('submitText');
+            const submitLoading = document.getElementById('submitLoading');
+
+            // Show loading state
+            submitButton.disabled = true;
+            submitText.classList.add('hidden');
+            submitLoading.classList.remove('hidden');
+
+            try {
+                const formData = new FormData(e.target);
+
+                // Create product data object that matches the database schema
+                const productData = {
+                    name: formData.get('productName'),
+                    description: formData.get('description') || null,
+                    category_id: await getCategoryId(formData.get('category')),
+                    price: parseFloat(formData.get('price')),
+                    stock_quantity: parseInt(formData.get('stockQuantity')),
+                    image_url: null // We're not handling images yet
+                };
+
+                const productId = formData.get('productId');
+
+                console.log('Updating product with data:', productData); // Debug log
+
+                // Update product in database
+                await window.db.updateProduct(productId, productData);
+
+                showMessage('Product updated successfully!', 'success');
+
+                // Redirect back to dashboard after a short delay
+                setTimeout(() => {
+                    goBack();
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error updating product:', error);
+                showMessage('Error updating product. Please try again.', 'error');
+            } finally {
+                // Reset button state
+                submitButton.disabled = false;
+                submitText.classList.remove('hidden');
+                submitLoading.classList.add('hidden');
+            }
+        });
+
+        function validateForm() {
+            let isValid = true;
+            const requiredFields = [
+                { id: 'productName', errorId: 'productNameError', message: 'Product name is required' },
+                { id: 'category', errorId: 'categoryError', message: 'Category is required' },
+                { id: 'price', errorId: 'priceError', message: 'Valid price is required' },
+                { id: 'stockQuantity', errorId: 'stockQuantityError', message: 'Stock quantity is required' }
+            ];
+
+            // Reset all error messages
+            requiredFields.forEach(field => {
+                document.getElementById(field.errorId).classList.add('hidden');
+                document.getElementById(field.id).classList.remove('border-red-500');
+            });
+
+            // Validate each required field
+            requiredFields.forEach(field => {
+                const element = document.getElementById(field.id);
+                const value = element.value.trim();
+
+                if (!value || (field.id === 'price' && parseFloat(value) <= 0) ||
+                    (field.id === 'stockQuantity' && parseInt(value) < 0)) {
+                    isValid = false;
+                    element.classList.add('border-red-500');
+                    document.getElementById(field.errorId).classList.remove('hidden');
+                }
+            });
+
+            return isValid;
+        }
+
+        function goBack() {
+            window.location.href = 'page2.html';
+        }
+
+        function showMessage(message, type) {
+            const messageContainer = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+
+            const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+
+            messageDiv.innerHTML = `
+                <div class="${bgColor} text-white px-6 py-4 rounded-lg shadow-lg mb-4 max-w-sm">
+                    <div class="flex items-center">
+                        <span class="mr-2">
+                            ${type === 'success' ?
+                    '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' :
+                    '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>'
+                }
+                        </span>
+                        <span>${message}</span>
+                    </div>
+                </div>
+            `;
+
+            messageContainer.appendChild(messageDiv);
+
+            // Auto-remove message after 3 seconds
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // Load product when page loads
+        document.addEventListener('DOMContentLoaded', loadProduct);
+    </script>
+</body>
+
+</html>
